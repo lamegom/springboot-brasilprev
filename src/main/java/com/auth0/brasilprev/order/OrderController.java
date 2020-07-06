@@ -1,5 +1,10 @@
 package com.auth0.brasilprev.order;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,37 +15,60 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.auth0.brasilprev.product.Product;
+
+import lombok.AllArgsConstructor;
 
 @RestController
 @RequestMapping("/orders")
+@AllArgsConstructor(onConstructor = @__(@Autowired))
 public class OrderController {
 
-    private OrderRepository orderRepository;
+    private OrderService orderService;
 
 
     @PostMapping
-    public void orderRepository(@RequestBody Order order) {
-    	orderRepository.save(order);
+    public ResponseEntity<?> orderRepository(@RequestBody Order order) {
+
+        	try {
+        		Order response = orderService.addOrder(order);
+        	
+        		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        	} catch(Exception e) {
+        		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getLocalizedMessage());
+        	}
     }
 
     @GetMapping
-    public List<Order> getOrders() {
-        return orderRepository.findAll();
+    public ResponseEntity<?> getOrders() {
+    	try {
+    		List<Order> response = orderService.getAllOrders();
+    	
+    		return ResponseEntity.status(HttpStatus.OK).body(response);
+    	} catch(Exception e) {
+    		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getLocalizedMessage());
+    	}
     }
 
     @PutMapping("/{id}")
-    public void editOrder(@PathVariable long id, @RequestBody Order order) {
-    	Order existingOrder = orderRepository.findById(id).get();
-        Assert.notNull(existingOrder, "Order not found");
-        existingOrder.setClient(order.getClient());
-        existingOrder.setProducts(order.getProducts());
-        orderRepository.save(existingOrder);
+    public ResponseEntity<?> editOrder(@PathVariable long id, @RequestBody Order order) {
+    	try {
+    		Order response = orderService.editOrder(id, order);
+    	
+    		return ResponseEntity.status(HttpStatus.OK).body(response);
+    	} catch(Exception e) {
+    		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getLocalizedMessage());
+    	}
     }
 
     @DeleteMapping("/{id}")
-    public void deleteOrder(@PathVariable long id) {
-    	Order productToDel = orderRepository.findById(id).get();
-    	orderRepository.delete(productToDel);
+    public ResponseEntity<?> deleteOrder(@PathVariable long id) {
+    	try {
+    		orderService.deleteOrder(id);
+    	
+    		return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Successfully deleted.");
+    	} catch(Exception e) {
+    		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getLocalizedMessage());
+    	}
     }
 }

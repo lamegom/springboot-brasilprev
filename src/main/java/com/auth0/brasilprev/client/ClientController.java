@@ -1,5 +1,10 @@
 package com.auth0.brasilprev.client;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,37 +15,65 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
 
 @RestController
 @RequestMapping("/clients")
+@AllArgsConstructor(onConstructor = @__(@Autowired))
 public class ClientController {
 
-    private ClientRepository clientRepository;
+    private ClientService clientService;
 
 
     @PostMapping
-    public void addClient(@RequestBody Client client) {
-        clientRepository.save(client);
+    public ResponseEntity<?> addClient(@RequestBody Client client) {
+        
+    	try {
+    		Client response = clientService.addClient(client);
+    	
+    		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    	} catch(Exception e) {
+    		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getLocalizedMessage());
+    	}
     }
 
     @GetMapping
-    public List<Client> getClients() {
-        return clientRepository.findAll();
+    public ResponseEntity<?> getClients() {
+    	
+    	try {
+    		List<Client> clients = clientService.getAllClients();
+    	
+    		return ResponseEntity.status(HttpStatus.OK).body(clients);
+    	} catch(Exception e) {
+    		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getLocalizedMessage());
+    	}
+    	
+        
     }
 
     @PutMapping("/{id}")
-    public void editClient(@PathVariable long id, @RequestBody Client client) {
-    	Client existingClient = clientRepository.findById(id).get();
-        Assert.notNull(existingClient, "Client not found");
-        existingClient.setName(client.getName());
-        existingClient.setEmail(client.getEmail());
-        clientRepository.save(existingClient);
+    public ResponseEntity<?> editClient(@PathVariable long id, @RequestBody Client client) {
+    	
+    	try {
+    		Client response = clientService.editClient(id, client);
+    	
+    		return ResponseEntity.status(HttpStatus.OK).body(response);
+    	} catch(Exception e) {
+    		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getLocalizedMessage());
+    	}
+    	
     }
 
     @DeleteMapping("/{id}")
-    public void deleteClient(@PathVariable long id) {
-    	Client clientToDel = clientRepository.findById(id).get();
-        clientRepository.delete(clientToDel);
+    public ResponseEntity<?> deleteClient(@PathVariable long id) {
+    	
+    	try {
+    		clientService.deleteClient(id);
+    	
+    		return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Successfully deleted.");
+    	} catch(Exception e) {
+    		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getLocalizedMessage());
+    	}
+    	
     }
 }

@@ -7,6 +7,7 @@ public class MockDomain {
 	
 	public static Client getClient() {
 		Client client = new Client();
+		client.setId(1L);
 		client.setName("Marcio Lamego");
 		client.setEmail("lamegom@me.com");
 		
